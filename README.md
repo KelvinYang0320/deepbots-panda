@@ -30,6 +30,7 @@ Decide on what action should be taken by <code>agent.work()</code>.
 ## Current Achievements and work
 ### Achievements: Reach a Target via PPOAgent
 ![image](https://github.com/KelvinYang0320/deepbots-panda/blob/master/img/demo.gif)
+![image](https://github.com/KelvinYang0320/deepbots-panda/blob/master/img/trend.png)
 ### Reinforcement Learning Algorithn
 1. PPO
 > https://openai.com/blog/openai-baselines-ppo/
