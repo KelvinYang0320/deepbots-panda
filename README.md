@@ -37,3 +37,7 @@ Decide on what action should be taken by <code>agent.work()</code>.
 > [V. Mnih et al., "Human-level control through deep reinforcement learning." Nature, 518 (7540):529–533, 2015.](https://storage.googleapis.com/deepmind-media/dqn/DQNNaturePaper.pdf)
 3. DoubleDQN
 > [van Hasselt et al., "Deep Reinforcement Learning with Double Q-learning." arXiv preprint arXiv:1509.06461, 2015.](https://arxiv.org/pdf/1509.06461.pdf)
+
+TBC...
+
+reference: https://github.com/Curt-Park/rainbow-is-all-you-need
