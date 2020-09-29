@@ -14,7 +14,7 @@
 ## How it works
 
 ### Overview: emitter - receiver scheme
-![image](https://github.com/CT-Lab/deepbots-panda/blob/master/img/deepbots_overview.png)
+![image](https://github.com/KelvinYang0320/deepbots-panda/blob/master/img/deepbots_overview.png)
 
 ### Observation
 To do better than take random actions at each step, we ant to know what our actions are doing to the environment.
@@ -29,7 +29,7 @@ Decide on what action should be taken by <code>agent.work()</code>.
 
 ## Current Achievements and work
 ### Achievements: Reach a Target via PPOAgent
-![image](https://github.com/CT-Lab/deepbots-panda/blob/master/img/demo.gif)
+![image](https://github.com/KelvinYang0320/deepbots-panda/blob/master/img/demo.gif)
 ### Reinforcement Learning Algorithn
 1. PPO
 > https://openai.com/blog/openai-baselines-ppo/
