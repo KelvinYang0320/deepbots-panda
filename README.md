@@ -9,7 +9,7 @@
 <code>pip install deepbots</code>
 4. Install PyTorch via pip
 5. Clone this repository by running the following command:\
-<code>git clone https://github.com/CT-Lab/deepbots-panda.git</code>
+<code>git clone https://github.com/KelvinYang0320/deepbots-panda.git</code>
 
 ## How it works
 
