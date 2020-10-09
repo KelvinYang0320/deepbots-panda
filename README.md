@@ -15,7 +15,8 @@
 
 ### Overview: emitter - receiver scheme
 ![image](https://github.com/KelvinYang0320/deepbots-panda/blob/master/img/deepbots_overview.png)
-
+### Class Diagram with PPO agent for cartpole
+![image](https://github.com/KelvinYang0320/deepbots-panda/blob/master/img/classDiagram.png)
 ### Observation
 To do better than take random actions at each step, we ant to know what our actions are doing to the environment.
 The environment’s <code>supervisor.step</code> function returns exactly what we need. In fact, step returns four values. These are:
