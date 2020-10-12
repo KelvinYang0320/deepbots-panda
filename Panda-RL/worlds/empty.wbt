@@ -1,0 +1,100 @@
+#VRML_SIM R2020b utf8
+WorldInfo {
+  physics "panda_physics"
+  coordinateSystem "NUE"
+  contactProperties [
+    ContactProperties {
+      material1 "finger-contactMaterial"
+      material2 "can-contactMaterial"
+      coulombFriction [
+        100
+      ]
+      frictionRotation 1 1
+    }
+  ]
+}
+Viewpoint {
+  fieldOfView 0.9
+  orientation -0.07020221763768855 0.9885386780201318 0.13365227531531543 2.167950201735053
+  position 3.5727867794945047 1.8375126440346132 -2.555851103407651
+}
+TexturedBackground {
+}
+TexturedBackgroundLight {
+  castShadows FALSE
+}
+RectangleArena {
+  translation -0.08 0 0
+  floorSize 5 5
+}
+DEF TARGET_ Solid {
+  translation 0.566522 0.67 0.03
+  scale 0.5 0.5 0.5
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 1 0 0
+        metalness 0
+        IBLStrength 0
+        emissiveIntensity 0
+      }
+      geometry Sphere {
+        radius 0.05
+      }
+    }
+  ]
+}
+WoodenBox {
+  translation 0.63 0.3 0
+  size 1 0.6 1
+}
+WoodenBox {
+  translation -0.38 0.3 -0.61
+  name "wooden box(2)"
+  size 1 0.6 1
+}
+WoodenBox {
+  translation -0.03 0.3 0
+  name "wooden box(1)"
+  size 0.3 0.6 0.2
+}
+DEF supervisor Robot {
+  children [
+    Receiver {
+    }
+    Emitter {
+    }
+  ]
+  controller "supervisorController"
+  supervisor TRUE
+}
+DEF TARGET Solid {
+  translation -0.043478 0.9 -0.625873
+  scale 0.5 0.5 0.5
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 0 1 0
+        transparency 0.8
+        metalness 0
+        IBLStrength 0
+        emissiveIntensity 0
+      }
+      geometry Sphere {
+        radius 0.2
+      }
+    }
+    Shape {
+      appearance PBRAppearance {
+        baseColor 1 0 0
+        metalness 0
+        IBLStrength 0
+        emissiveIntensity 0
+      }
+      geometry Sphere {
+        radius 0.05
+      }
+    }
+  ]
+  name "solid(2)"
+}
