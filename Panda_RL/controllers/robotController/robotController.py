@@ -34,6 +34,16 @@ class PandaRobot(RobotEmitterReceiverCSV):
 			motor.setPosition(float('inf'))  # Set starting position
 			motor.setVelocity(0.0)  # Zero out starting velocity
 			self.motorList.append(motor)
+		motorName = 'finger motor L'
+		motor = self.robot.getMotor(motorName)	 # Get the motor handle #positionSensor1
+		motor.setPosition(0.02)  # Set starting position
+		motor.setVelocity(0.2)  # Zero out starting velocity
+		self.motorList.append(motor)
+		motorName = 'finger motor R'
+		motor = self.robot.getMotor(motorName)	 # Get the motor handle #positionSensor1
+		motor.setPosition(0.02)  # Set starting position
+		motor.setVelocity(0.2)  # Zero out starting velocity
+		self.motorList.append(motor)
 	def create_message(self):
 		# Read the sensor value, convert to string and save it in a list
 		message = [str(self.positionSensorList[0].getValue()), str(self.positionSensorList[1].getValue()),\
