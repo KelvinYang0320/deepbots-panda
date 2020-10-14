@@ -40,7 +40,7 @@ class PPOAgent:
         self.actor_net = Actor(numberOfInputs, numberOfActorOutputs)
         self.critic_net = Critic(numberOfInputs)
         
-        #self.load('')
+        self.load('')
         if self.use_cuda:
             #print("yes")
             print(torch.cuda.is_available())
