@@ -24,13 +24,13 @@ class PandaRobot(RobotEmitterReceiverCSV):
 		self.positionSensorList = []
 		for i in range(7):
 			positionSensorName = 'positionSensor' + str(i+1)
-			positionSensor = self.robot.getPositionSensor(positionSensorName)
+			positionSensor = self.robot.getDevice(positionSensorName)
 			positionSensor.enable(self.get_timestep())
 			self.positionSensorList.append(positionSensor)
 		self.motorList = []
 		for i in range(7):
 			motorName = 'motor' + str(i + 1)
-			motor = self.robot.getMotor(motorName)	 # Get the motor handle #positionSensor1
+			motor = self.robot.getDevice(motorName)	 # Get the motor handle #positionSensor1
 			motor.setPosition(float('inf'))  # Set starting position
 			motor.setVelocity(0.0)  # Zero out starting velocity
 			self.motorList.append(motor)
@@ -52,18 +52,6 @@ class PandaRobot(RobotEmitterReceiverCSV):
 			code = int(code/3)
 		#print("decode message to action: ", setVelocityList)
 
-		# # version1 add Velocity
-		# for i in range(7):
-		# 	action = setVelocityList[i]  # Convert the string message into an action integer
-		# 	if action == 2:
-		# 		motorSpeed = -1.0
-		# 	elif action == 1:
-		# 		motorSpeed = 1.0
-		# 	else:
-		# 		motorSpeed = 0.0
-		# 	self.motorList[i].setVelocity(motorSpeed) # Set the motors' velocities based on the action received
-		
-		# version2 add position
 		for i in range(7):
 			action = setVelocityList[i]
 			if action == 2:
