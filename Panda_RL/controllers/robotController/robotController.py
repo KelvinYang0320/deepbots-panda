@@ -1,74 +1,83 @@
 from deepbots.robots.controllers.robot_emitter_receiver_csv import RobotEmitterReceiverCSV
 import numpy as np
+from ArmUtil import Func
 def motorToRange(motorPosition, i):
 	if(i==0):
-		motorPosition = np.clip(motorPosition, -2.897, 2.897)
+		motorPosition = np.clip(motorPosition, -2.8972, 2.8972)
 	elif(i==1):
-		motorPosition = np.clip(motorPosition, -1.763, 1.763)
+		motorPosition = np.clip(motorPosition, -1.7628, 1.7628)
 	elif(i==2):
-		motorPosition = np.clip(motorPosition, -2.8973, 2.8973)
+		motorPosition = np.clip(motorPosition, -2.8972, 2.8972)
 	elif(i==3):
-		motorPosition = np.clip(motorPosition, -3.072, -0.07)
+		motorPosition = np.clip(motorPosition, -3.0718, -0.0698)
 	elif(i==4):
-		motorPosition = np.clip(motorPosition, -2.8973, 2.8973)
+		motorPosition = np.clip(motorPosition, -2.8972, 2.8972)
 	elif(i==5):
 		motorPosition = np.clip(motorPosition, -0.0175, 3.7525)
 	elif(i==6):
-		motorPosition = np.clip(motorPosition, -2.897, 2.897)
+		motorPosition = np.clip(motorPosition, -2.8972, 2.8972)
 	else:
 		pass
 	return motorPosition
 class PandaRobot(RobotEmitterReceiverCSV):
 	def __init__(self):
 		super().__init__()
-		self.positionSensorList = []
-		for i in range(7):
-			positionSensorName = 'positionSensor' + str(i+1)
-			positionSensor = self.robot.getDevice(positionSensorName)
-			positionSensor.enable(self.get_timestep())
-			self.positionSensorList.append(positionSensor)
-		self.motorList = []
-		for i in range(7):
-			motorName = 'motor' + str(i + 1)
-			motor = self.robot.getDevice(motorName)	 # Get the motor handle #positionSensor1
-			motor.setPosition(float('inf'))  # Set starting position
-			motor.setVelocity(0.0)  # Zero out starting velocity
-			self.motorList.append(motor)
+		# get all position sensors
+		self.positionSensorList = Func.get_All_positionSensors(self.robot, self.get_timestep())
+		# get all motor
+		self.motorList = Func.get_All_motors(self.robot)
+
+		# Set these for ensure that the robot stops moving
+		self.motorPositionArr = np.zeros(7)
+		self.motorPositionArr_target = np.zeros(7)
+
+		# rotation for Each step
+		self.deltaAngle = 0.05
+		self.motorVelocity = 2.5
+
 	def create_message(self):
-		# Read the sensor value, convert to string and save it in a list
-		message = [str(self.positionSensorList[0].getValue()), str(self.positionSensorList[1].getValue()),\
-			str(self.positionSensorList[2].getValue()), str(self.positionSensorList[3].getValue()),\
-			str(self.positionSensorList[4].getValue()), str(self.positionSensorList[5].getValue()),\
-			str(self.positionSensorList[6].getValue())]
+		prec = 0.0001
+		err = (np.array(self.motorPositionArr)-np.array(self.motorPositionArr_target)) < prec
+
+		if not np.all(err):
+			message = ["StillMoving"]
+		else:
+			# Read the sensor value, convert to string and save it in a list
+			message = [str(i) for i in self.motorPositionArr]
 		return message
 	
 	def use_message_data(self, message):
 		#print("robot get this message: ", message)
 		code = int(message[0])
-		setVelocityList = []
+		
+		# ignore this action and keep moving
+		if code==-1:
+			for i in range(7):
+				motorPosition = self.positionSensorList[i].getValue()
+				self.motorPositionArr[i]=motorPosition
+				self.motorList[i].setVelocity(2.5)
+				self.motorList[i].setPosition(self.motorPositionArr_target[i]) 
+			return
+		
+		setActionList = []
 		# decoding action
 		for i in range(7):
-			setVelocityList.append(code%3)
+			setActionList.append(code%3)
 			code = int(code/3)
-		#print("decode message to action: ", setVelocityList)
-
+		#print("decode message to action: ", setActionList)
+		self.motorPositionArr = np.array(Func.getValue(self.positionSensorList))
 		for i in range(7):
-			action = setVelocityList[i]
+			action = setActionList[i]
 			if action == 2:
-				motorPosition = self.positionSensorList[i].getValue()-0.05
-				motorPosition = motorToRange(motorPosition, i)
-				self.motorList[i].setVelocity(2.5)
-				self.motorList[i].setPosition(motorPosition) 
+				motorPosition = self.motorPositionArr[i]-self.deltaAngle
 			elif action == 1:
-				motorPosition = self.positionSensorList[i].getValue()+0.05
-				motorPosition = motorToRange(motorPosition, i)
-				self.motorList[i].setVelocity(2.5)
-				self.motorList[i].setPosition(motorPosition)
+				motorPosition = self.motorPositionArr[i]+self.deltaAngle
 			else:
-				motorPosition = self.positionSensorList[i].getValue()
-				motorPosition = motorToRange(motorPosition, i)
-				self.motorList[i].setVelocity(2.5)
-				self.motorList[i].setPosition(motorPosition)
+				motorPosition = self.motorPositionArr[i]
+			motorPosition = motorToRange(motorPosition, i)
+			self.motorList[i].setVelocity(self.motorVelocity)
+			self.motorList[i].setPosition(motorPosition)
+			self.motorPositionArr_target[i]=motorPosition
 # Create the robot controller object and run it
 robot_controller = PandaRobot()
 robot_controller.run()  # Run method is implemented by the framework, just need to call it
