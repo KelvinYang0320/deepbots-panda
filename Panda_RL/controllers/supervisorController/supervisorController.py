@@ -135,7 +135,7 @@ while not solved and supervisor.episodeCount < supervisor.episodeLimit:
 		newObservation, reward, done, info = supervisor.step([selectedAction])
 		while(newObservation==["StillMoving"]):
 			print("Wait...Still Moving...")
-			newObservation, reward, done, info = supervisor.step([0])
+			newObservation, reward, done, info = supervisor.step([-1])
 		print("Ready for next step!")
 		print("~~~~~~~~~~~~~~~~~~~~")
 		
