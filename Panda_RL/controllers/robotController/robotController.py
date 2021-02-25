@@ -35,15 +35,30 @@ class PandaRobot(RobotEmitterReceiverCSV):
 		self.deltaAngle = 0.05
 		self.motorVelocity = 2.5
 
-	def create_message(self):
-		prec = 0.0001
-		err = (np.array(self.motorPositionArr)-np.array(self.motorPositionArr_target)) < prec
+		# motor stcuk
+		self.cnt_no_message = 0
 
+	def create_message(self):
+		
+		prec = 0.0001
+		err = np.absolute(np.array(self.motorPositionArr)-np.array(self.motorPositionArr_target)) < prec
+		
 		if not np.all(err):
-			message = ["StillMoving"]
+			self.cnt_no_message = self.cnt_no_message + 1
+			if self.cnt_no_message >=50:
+				# print("I am stuck... continue...")
+				message = [str(i) for i in self.motorPositionArr]
+				self.cnt_no_message = 0
+			else:
+				message = ["StillMoving"]
 		else:
 			# Read the sensor value, convert to string and save it in a list
 			message = [str(i) for i in self.motorPositionArr]
+			self.cnt_no_message = 0
+			
+		
+		self.motorPositionArr_check = np.copy(self.motorPositionArr)
+
 		return message
 	
 	def use_message_data(self, message):
@@ -56,7 +71,7 @@ class PandaRobot(RobotEmitterReceiverCSV):
 				motorPosition = self.positionSensorList[i].getValue()
 				self.motorPositionArr[i]=motorPosition
 				self.motorList[i].setVelocity(2.5)
-				self.motorList[i].setPosition(self.motorPositionArr_target[i]) 
+				self.motorList[i].setPosition(self.motorPositionArr_target[i])
 			return
 		
 		setActionList = []
