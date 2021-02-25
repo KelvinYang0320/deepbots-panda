@@ -2,5 +2,6 @@
 More runners for discrete RL algorithms can be added here.
 """
 import PPO_runner
-
-PPO_runner.run()
+import DDPG_runner
+# PPO_runner.run()
+DDPG_runner.run()

@@ -10,16 +10,17 @@ class PandaRobotSupervisor(RobotSupervisor):
     Observation:
         Type: Box(10)
         Num	Observation                Min(rad)      Max(rad)
-        0	Position Sensor on A1      -2.8972        2.8972
-        1	Position Sensor on A2      -1.7628        1.7628
-        2	Position Sensor on A3      -2.8972        2.8972
-        3	Position Sensor on A4      -3.0718       -0.0698
-        4	Position Sensor on A5      -2.8972        2.8972
-        5   Position Sensor on A6      -0.0175        3.7525
-        6	Position Sensor on A7      -2.8972        2.8972
-        7	Target x                   -Inf           Inf
-        8	Target y                   -Inf           Inf
-        9	Target z                   -Inf           Inf
+        0	Target x                   -Inf           Inf
+        1	Target y                   -Inf           Inf
+        2	Target z                   -Inf           Inf
+        3	Position Sensor on A1      -2.8972        2.8972
+        4	Position Sensor on A2      -1.7628        1.7628
+        5	Position Sensor on A3      -2.8972        2.8972
+        6	Position Sensor on A4      -3.0718       -0.0698
+        7	Position Sensor on A5      -2.8972        2.8972
+        8   Position Sensor on A6      -0.0175        3.7525
+        9	Position Sensor on A7      -2.8972        2.8972
+        
     Actions:
         Type: Discrete(2)
         Num	  Action
@@ -43,8 +44,8 @@ class PandaRobotSupervisor(RobotSupervisor):
         super().__init__()
 
         # Set up gym spaces
-        self.observation_space = Box(low=np.array([-2.8972, -1.7628, -2.8972, -3.0718, -2.8972, -0.0175, -2.8972, -np.inf, -np.inf, -np.inf]),
-                                     high=np.array([2.8972,  1.7628,  2.8972, -0.0698,  2.8972,  3.7525,  2.8972,  np.inf,  np.inf,  np.inf]),
+        self.observation_space = Box(low=np.array([-np.inf, -np.inf, -np.inf, -2.8972, -1.7628, -2.8972, -3.0718, -2.8972, -0.0175, -2.8972]),
+                                     high=np.array([np.inf,  np.inf,  np.inf, 2.8972,  1.7628,  2.8972, -0.0698,  2.8972,  3.7525,  2.8972]),
                                      dtype=np.float64)
         self.action_space = Discrete(2187)
 
@@ -52,8 +53,9 @@ class PandaRobotSupervisor(RobotSupervisor):
         self.robot = self.getSelf()  # Grab the robot reference from the supervisor to access various robot methods
         self.positionSensorList = Func.get_All_positionSensors(self, self.timestep)
         # self.positionSensor.enable(self.timestep)
+        str_index = np.random.randint(1, 10, 1)[0]
+        self.target = self.getFromDef("TARGET%s"%(str_index))
 
-        self.target = self.getFromDef("TARGET")
         self.setup_motors()
 
         # Set up misc
@@ -68,6 +70,7 @@ class PandaRobotSupervisor(RobotSupervisor):
         self.motorPositionArr_target = np.zeros(7)
         self.distance = float("inf")
         self.endEffector = self.getFromDef("endEffector")
+        
     def get_observations(self):
         """
         This get_observation implementation builds the required observation for the CartPole problem.
@@ -82,10 +85,10 @@ class PandaRobotSupervisor(RobotSupervisor):
         if not np.all(err):
             return ["StillMoving"]
 
-        message = [i for i in self.motorPositionArr]
+        
         targetPosition = ToArmCoord.convert(self.target.getPosition())
-        for i in targetPosition:
-            message.append(i)
+        message = [i for i in targetPosition]
+        message.extend([i for i in self.motorPositionArr])
         return message
 
     def get_reward(self, action):
