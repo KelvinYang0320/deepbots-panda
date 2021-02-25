@@ -1,15 +1,16 @@
 import numpy as np
 from deepbots.supervisor.controllers.supervisor_emitter_receiver import SupervisorCSV
-from PPOAgent import PPOAgent, Transition
+from agent.PPOAgent import PPOAgent, Transition
 from utilities import normalizeToRange
 from ArmUtil import ToArmCoord, PSFunc
+import time
 # from ikpy.chain import Chain
 # from ikpy.link import OriginLink, URDFLink
 class PandaSupervisor(SupervisorCSV):
 	def __init__(self):
 		super().__init__()  
-		self.observationSpace = 14  # The agent has 7 inputs 
-		self.actionSpace = 2187 # The agent can perform 3^7 actions
+		self.observationSpace = 10  # The agent has 7 inputs 
+		self.actionSpace = 2187-1 # The agent can perform 3^7-1 actions
 
 		self.robot = None
 		self.target = None
@@ -21,19 +22,13 @@ class PandaSupervisor(SupervisorCSV):
 		
 		self.episodeCount = 0  # Episode counter
 		self.episodeLimit = 15000  # Max number of episodes allowed
-		self.stepsPerEpisode = 500  # Max number of steps per episode
+		self.stepsPerEpisode = 300  # Max number of steps per episode
 		self.episodeScore = 0  # Score accumulated during an episode
 		self.episodeScoreList = []  # A list to save all the episode scores, used to check if task is solved
 		self.doneTotal = 0
 
-		# for Computing the distance diff
-		# targetPosition = ToArmCoord.convert(self.target.getPosition()) # transfer to arm coordinate system
-		# tmp = [0.0 for _ in range(8)]
-		# tmp[3] = -0.0698
-		# endEffectorPosition = self.armChain.forward_kinematics(tmp)[0:3, 3] # This is already in arm coordinate.
-		# endEffectorPosition = ToArmCoord.convert(self.endEffector.getPosition()) # transfer to arm coordinate system
-		# self.preL2norm = np.linalg.norm([targetPosition[0]-endEffectorPosition[0],targetPosition[1]-endEffectorPosition[1],targetPosition[2]-endEffectorPosition[2]])
-		#------
+		self.distance = float("inf")
+
 	def respawnRobot(self):
 		if self.robot is not None:
 			# Despawn existing robot
@@ -50,16 +45,21 @@ class PandaSupervisor(SupervisorCSV):
 
 		targetPosition = ToArmCoord.convert(self.target.getPosition()) # transfer to arm coordinate system
 		endEffectorPosition = ToArmCoord.convert(self.endEffector.getPosition()) # transfer to arm coordinate system
-		self.preL2norm = np.linalg.norm([targetPosition[0]-endEffectorPosition[0],targetPosition[1]-endEffectorPosition[1],targetPosition[2]-endEffectorPosition[2]])
+		
 		# print("test:",self.endEffector.getPosition())
 	def get_observations(self): # [motorPosition, targetPosition, endEffectorPosition, L2norm(targetPosition vs endEffectorPosition)]
 		# Update self.messageReceived received from robot, which contains motor position
 		self.messageReceived = self.handle_receiver()
+		# print("[Get a Message]")
+		# print("[Obs]", self.messageReceived)
+		if self.messageReceived is None:
+			return ["StillMoving"]
 		if self.messageReceived is not None:
-			print("yes")
-			motorPosition = [float(self.messageReceived[0]), float(self.messageReceived[1]), float(self.messageReceived[2]), \
-				float(self.messageReceived[3]), float(self.messageReceived[4]), float(self.messageReceived[5]), \
-				float(self.messageReceived[6])]
+			# print("[Get a Message]:")
+			if(len(self.messageReceived)==1):
+				returnObservation = ["StillMoving"]
+				return returnObservation
+			motorPosition = [ float(i)  for i in self.messageReceived]
 		else:
 			# Method is called before self.messageReceived is initialized
 			motorPosition = [0.0 for _ in range(7)]
@@ -69,31 +69,50 @@ class PandaSupervisor(SupervisorCSV):
 		targetPosition = self.target.getPosition()
 		targetPosition = ToArmCoord.convert(targetPosition) # transfer to arm coordinate system
 		
-		if self.messageReceived is not None:
-			# get end-effort position
-			motorPosition_for_FK = motorPosition + [0.0]
-			# endEffectorPosition = self.armChain.forward_kinematics(motorPosition_for_FK)[0:3, 3] # This is already in arm coordinate.
-			endEffectorPosition = ToArmCoord.convert(self.endEffector.getPosition()) # transfer to arm coordinate system
-			# compute L2 norm
-			# print("[Debug tartgetPosition]:",targetPosition)
-			# print("[Debug endEffectorPosition]:",endEffectorPosition)
-			L2norm = np.linalg.norm([targetPosition[0]-endEffectorPosition[0],targetPosition[1]-endEffectorPosition[1],targetPosition[2]-endEffectorPosition[2]])
-		else:
-			# tmp = [0.0 for _ in range(8)]
-			# tmp[3] = -0.0698
-			# endEffectorPosition = self.armChain.forward_kinematics(tmp)[0:3, 3] # This is already in arm coordinate.
-			endEffectorPosition = ToArmCoord.convert(self.endEffector.getPosition()) # transfer to arm coordinate system
-			L2norm = self.preL2norm
-		
 		# convert to a single list
-		returnObservation = [*motorPosition, *targetPosition, *endEffectorPosition, L2norm]
+		returnObservation = [*motorPosition, *targetPosition]
 		return returnObservation
 		
 	def get_reward(self, action=None):
-		return 0 # I implement in the comment:'compute reward here' 
+
+		# print("[R]", self.messageReceived)
+		if self.messageReceived is not None:
+			# print("[Get a Message]:")
+			if(len(self.messageReceived)==1):
+				returnObservation = ["StillMoving"]
+				return 0
+		
+		# get TARGET posion
+		targetPosition = self.target.getPosition()
+		targetPosition = ToArmCoord.convert(targetPosition) # transfer to arm coordinate system
+
+		if self.messageReceived is not None:
+			# get end-effort position and transfer to arm coordinate system
+			endEffectorPosition = ToArmCoord.convert(self.endEffector.getPosition()) 
+			# compute L2 norm
+			self.distance = np.linalg.norm([targetPosition[0]-endEffectorPosition[0],targetPosition[1]-endEffectorPosition[1],targetPosition[2]-endEffectorPosition[2]])
+		else:
+			endEffectorPosition = ToArmCoord.convert(self.endEffector.getPosition()) # transfer to arm coordinate system
+		
+		reward = -self.distance
+		
+		if self.distance < 0.01: 
+			reward = reward + 1.5
+		elif self.distance < 0.015:
+			reward = reward + 1.0
+		elif self.distance < 0.03:
+			reward = reward + 0.5
+		
+		return reward 
 	
 	def is_done(self):
-		return False
+
+		if(self.distance < 0.005):
+			done = True
+		else:
+			done = False
+
+		return done
 	
 	def solved(self):
 		if len(self.episodeScoreList) > 1000:  # Over 100 trials thus far
@@ -112,7 +131,7 @@ class PandaSupervisor(SupervisorCSV):
 		
 supervisor = PandaSupervisor()
 agent = PPOAgent(supervisor.observationSpace, supervisor.actionSpace, use_cuda=True) #add use_cuda
-
+agent.load('')
 solved = False
 
 cnt_veryClose = 0
@@ -121,67 +140,45 @@ while not solved and supervisor.episodeCount < supervisor.episodeLimit:
 	observation = supervisor.reset()  # Reset robot and get starting observation
 	supervisor.episodeScore = 0
 	cnt_veryClose = 0
+	print("===episodeCount:", supervisor.episodeCount,"===")
 	for step in range(supervisor.stepsPerEpisode):
-		print("step: ", step)
+		# print("===step:", step,"===")
 		# In training mode the agent samples from the probability distribution, naturally implementing exploration
 		selectedAction, actionProb = agent.work(observation, type_="selectAction")
 		
 		# Step the supervisor to get the current selectedAction's reward, the new observation and whether we reached 
 		# the done condition
+		# print("step:", step, "| selectedAction:", selectedAction)
 		newObservation, reward, done, info = supervisor.step([selectedAction])
-		print("L2",newObservation[-1])
-		# compute done here
-		if newObservation[-1] <= 0.01:
-			cnt_veryClose += 1
-		if cnt_veryClose >= 50 or step==supervisor.stepsPerEpisode-1:
-			done = True
-			supervisor.preL2norm=0.4
-		# compute reward here
-		## do not get too close to the limit value 
-		# [-2.897, 2.897], [-1.763, 1.763], [-2.8973, 2.8973], [-3.072, -0.0698]
-		# [-2.8973, 2.8973], [-0.0175, 3.7525], [-2.897, 2.897]
-		if newObservation[0]-(-2.897)<0.05 or 2.897-newObservation[0]<0.05 or\
-			newObservation[1]-(-1.763)<0.05 or 1.763-newObservation[1]<0.05 or\
-			newObservation[2]-(-2.8973)<0.05 or 2.8973-newObservation[2]<0.05 or\
-			newObservation[3]-(-3.072)<0.05 or -0.0697976-newObservation[3]<0.05 or\
-			newObservation[4]-(-2.8973)<0.05 or 2.8973-newObservation[4]<0.05 or\
-			newObservation[5]-(-0.0175)<0.05 or 3.7525-newObservation[5]<0.05 or\
-			newObservation[6]-(-2.897)<0.05 or 2.897-newObservation[6]<0.05:
-			reward = -1 # if on of the motors on the limit, reward = -2
-		else:
-			if(newObservation[-1]<0.01):
-				reward = 10 #*((supervisor.stepsPerEpisode - step)/supervisor.stepsPerEpisode) 
-			elif(newObservation[-1]<0.05):
-				reward = 5 #*((supervisor.stepsPerEpisode - step)/supervisor.stepsPerEpisode)
-			elif(newObservation[-1]<0.1):
-				reward = 1 #*((supervisor.stepsPerEpisode - step)/supervisor.stepsPerEpisode)
-			else:
-				reward = -(newObservation[-1]-supervisor.preL2norm) # negative reward
-			supervisor.preL2norm = newObservation[-1]
- 
-		print("reward: ",reward)
-		print("L2norm: ", newObservation[-1])
-		print("tarPosition(trans): ", newObservation[7:10])
-		print("endPosition: ", newObservation[10:13])
-		#print("endPosition(trans): ", ToArmCoord.convert(newObservation[10:13]))
-		# ------compute reward end------
+		# start_t = time.time()
+		while(newObservation==["StillMoving"]):
+			newObservation, reward, done, info = supervisor.step([-1])
+		# end_t = time.time()
+		# print("time:",end_t-start_t)
+		# print("Ready for next step!")
+		# print("~~~~~~~~~~~~~~~~~~~~")
+		
+		# print(newObservation, reward, done, info)
+
 		# Save the current state transition in agent's memory
 		trans = Transition(observation, selectedAction, actionProb, reward, newObservation)
 		agent.storeTransition(trans)
-
-		
-		if done:
+		# print(supervisor.distance,"|", done)
+		if done or step == supervisor.stepsPerEpisode-1:
 			if(step==0):
-				print("0 Step but done?")
+				print("Warning: Step=0 but the task is done?")
 				continue
-			print("done gogo")
+			if done:
+				print("Done!, Now training start...")
+			if step == supervisor.stepsPerEpisode-1:
+				print("Run through all steps! Now training start...")
 			# Save the episode's score
 			supervisor.episodeScoreList.append(supervisor.episodeScore)
 			agent.trainStep(batchSize=step)
 			solved = supervisor.solved()  # Check whether the task is solved
 			agent.save('')
 			break
-		
+		# print("reward:--------------------------------------===",reward)
 		supervisor.episodeScore += reward  # Accumulate episode reward
 		observation = newObservation  # observation for next step is current step's newObservation
 		

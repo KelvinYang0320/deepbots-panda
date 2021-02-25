@@ -14,6 +14,8 @@ Background {
   ]
 }
 RectangleArena {
+  floorSize 2 2
+  wallHeight 1e-05
 }
 DEF supervisor Robot {
   children [
