@@ -79,12 +79,13 @@ class PandaRobotSupervisor(RobotSupervisor):
         :return: Observation: [cartPosition, cartVelocity, poleAngle, poleTipVelocity]
         :rtype: list
         """
+        # process of negotiation
         prec = 0.0001
-        
+        # print("err:",np.absolute(np.array(self.motorPositionArr)-np.array(self.motorPositionArr_target)))
         err = np.absolute(np.array(self.motorPositionArr)-np.array(self.motorPositionArr_target)) < prec
         if not np.all(err):
             return ["StillMoving"]
-
+        # ----------------------
         
         targetPosition = ToArmCoord.convert(self.target.getPosition())
         message = [i for i in targetPosition]
@@ -193,7 +194,7 @@ class PandaRobotSupervisor(RobotSupervisor):
             self.motorList[i].setVelocity(self.motorVelocity)
             self.motorList[i].setPosition(motorPosition)
             self.motorPositionArr_target[i]=motorPosition # motorPositionArr_target Update
-        print(self.motorPositionArr, self.motorPositionArr_target)
+        # print(self.motorPositionArr, self.motorPositionArr_target)
 
     def setup_motors(self):
         """

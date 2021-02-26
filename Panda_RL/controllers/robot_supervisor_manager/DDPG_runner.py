@@ -13,7 +13,7 @@ def run():
     # We pass 4 as numberOfInputs and 2 as numberOfOutputs, taken from the gym spaces
     agent = DDPGAgent(alpha=0.000025, beta=0.00025, input_dims=[env.observation_space.shape[0]], tau=0.001, batch_size=64,  layer1_size=400, layer2_size=400, n_actions=env.action_space.n) 
               
-    agent.load_models()
+    # agent.load_models()
     episodeCount = 0 
     episodeLimit = 50000
     solved = False  # Whether the solved requirement is met
@@ -35,9 +35,11 @@ def run():
             # Step the supervisor to get the current selectedAction reward, the new state and whether we reached the
             # done condition
             newState, reward, done, info = env.step(act*0.032)
+            # process of negotiation
             while(newState==["StillMoving"]):
-                print("[StillMoving]")
+                # print("[StillMoving]")
                 newState, reward, done, info = env.step([-1])
+            # ----------------------
             # Save the current state transition in agent's memory
             agent.remember(state, act, reward, newState, int(done))
             env.episodeScore += reward  # Accumulate episode reward
