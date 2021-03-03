@@ -14,10 +14,6 @@ class ToArmCoord:
 		return [worldCoord[0], -worldCoord[2], worldCoord[1]]
 
 class PSFunc:
-	"""
-	Convert from world coordinate (x, y, z)
-	to arm coordinate (x, -z, y)
-	"""
 	@staticmethod
 	def getValue(positionSensorList):
 		psValue = []
