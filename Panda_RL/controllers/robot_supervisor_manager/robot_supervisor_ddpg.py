@@ -70,6 +70,8 @@ class PandaRobotSupervisor(RobotSupervisor):
         self.distance = float("inf")
         self.endEffector = self.getFromDef("endEffector")
         
+        # handshaking limit
+        self.cnt_handshaking = 0
     def get_observations(self):
         """
         This get_observation implementation builds the required observation for the CartPole problem.
@@ -83,8 +85,11 @@ class PandaRobotSupervisor(RobotSupervisor):
         prec = 0.0001
         # print("err:",np.absolute(np.array(self.motorPositionArr)-np.array(self.motorPositionArr_target)))
         err = np.absolute(np.array(self.motorPositionArr)-np.array(self.motorPositionArr_target)) < prec
-        if not np.all(err):
+        if not np.all(err) and self.cnt_handshaking<20:
+            self.cnt_handshaking = self.cnt_handshaking + 1
             return ["StillMoving"]
+        else:
+            self.cnt_handshaking = 0
         # ----------------------
         
         targetPosition = ToArmCoord.convert(self.target.getPosition())

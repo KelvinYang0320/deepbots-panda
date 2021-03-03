@@ -53,6 +53,9 @@ def run():
             state = newState  # state for next step is current step's newState
 
         print("Episode #", episodeCount, "score:", env.episodeScore)
+        fp = open("Episode-score.txt","a")
+        fp.write(str(env.episodeScore)+'\n')
+        fp.close()
         # The average action probability tells us how confident the agent was of its actions.
         # By looking at this we can check whether the agent is converging to a certain policy.
         avgActionProb = mean(actionProbs)
