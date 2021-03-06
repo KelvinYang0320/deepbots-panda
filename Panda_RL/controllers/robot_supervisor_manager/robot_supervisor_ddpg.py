@@ -61,7 +61,7 @@ class PandaRobotSupervisor(RobotSupervisor):
         self.stepsPerEpisode = 300  # How many steps to run each episode (changing this messes up the solved condition)
         self.episodeScore = 0  # Score accumulated during an episode
         self.episodeScoreList = []  # A list to save all the episode scores, used to check if task is solved
-        self.motorVelocity = 2.5
+        self.motorVelocity = 10
         self.deltaAngle = 0.05
         
         # Set these for ensure that the robot stops moving
@@ -187,7 +187,7 @@ class PandaRobotSupervisor(RobotSupervisor):
             for i in range(7):
                 motorPosition = self.positionSensorList[i].getValue()
                 self.motorPositionArr[i]=motorPosition
-                self.motorList[i].setVelocity(2.5)
+                self.motorList[i].setVelocity(self.motorVelocity)
                 self.motorList[i].setPosition(self.motorPositionArr_target[i])
             return
         setActionList = [i for i in action]

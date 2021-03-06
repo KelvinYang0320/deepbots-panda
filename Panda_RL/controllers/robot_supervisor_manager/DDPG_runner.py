@@ -13,12 +13,12 @@ def run():
     # We pass 4 as numberOfInputs and 2 as numberOfOutputs, taken from the gym spaces
     agent = DDPGAgent(alpha=0.000025, beta=0.00025, input_dims=[env.observation_space.shape[0]], tau=0.001, batch_size=64,  layer1_size=400, layer2_size=400, n_actions=env.action_space.n) 
               
-    # agent.load_models()
+    agent.load_models()
     episodeCount = 0 
     episodeLimit = 50000
     solved = False  # Whether the solved requirement is met
     averageEpisodeActionProbs = []  # Save average episode taken actions probability to plot later
-
+    targetList = [3, 6, 9]
     # Run outer loop until the episodes limit is reached or the task is solved
     while not solved and episodeCount < episodeLimit:
         state = env.reset()  # Reset robot and get starting observation
@@ -26,6 +26,7 @@ def run():
         actionProbs = []  # This list holds the probability of each chosen action
         print("===episodeCount:", episodeCount,"===")
         env.target = env.getFromDef("TARGET%s"%(random.randint(1, 10, 1)[0]))
+        env.target = env.getFromDef("TARGET%s"%(targetList[episodeCount]))
         # Inner loop is the episode loop
         for step in range(env.stepsPerEpisode):
             # print("===step:", step,"===")
@@ -58,9 +59,9 @@ def run():
         fp.close()
         # The average action probability tells us how confident the agent was of its actions.
         # By looking at this we can check whether the agent is converging to a certain policy.
-        avgActionProb = mean(actionProbs)
-        averageEpisodeActionProbs.append(avgActionProb)
-        print("Avg action prob:", avgActionProb)
+        # avgActionProb = mean(actionProbs)
+        # averageEpisodeActionProbs.append(avgActionProb)
+        # print("Avg action prob:", avgActionProb)
 
         episodeCount += 1  # Increment episode counter
 
