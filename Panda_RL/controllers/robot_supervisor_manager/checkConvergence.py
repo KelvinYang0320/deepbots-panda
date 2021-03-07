@@ -23,4 +23,5 @@ while(1):
 	#plt.show()
 	plt.legend()
 	plt.savefig('trend.png')
+	print(np.mean(scores[-100:]))
 	time.sleep(2)

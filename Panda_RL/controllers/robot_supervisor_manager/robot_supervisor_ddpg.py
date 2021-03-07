@@ -1,6 +1,4 @@
 from deepbots.supervisor.controllers.robot_supervisor import RobotSupervisor
-from utilities import normalizeToRange
-
 from gym.spaces import Box, Discrete
 import numpy as np
 from ArmUtil import Func, ToArmCoord
@@ -143,7 +141,7 @@ class PandaRobotSupervisor(RobotSupervisor):
         :rtype: bool
         """
         if len(self.episodeScoreList) > 100:  # Over 100 trials thus far
-            if np.mean(self.episodeScoreList[-100:]) > 195.0:  # Last 100 episode scores average value
+            if np.mean(self.episodeScoreList[-100:]) > -100.0:  # Last 100 episode scores average value
                 return True
         return False
 

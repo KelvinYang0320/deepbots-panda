@@ -213,6 +213,14 @@ class DDPGAgent(object):
         self.actor.train()
         return mu_prime.cpu().detach().numpy()
 
+    def choose_action_test(self, observation):
+        if observation is not None:
+            self.actor.eval()
+            observation = T.tensor(observation, dtype=T.float).to(self.actor.device)
+            mu = self.target_actor(observation).to(self.target_actor.device)
+
+            return mu.cpu().detach().numpy()
+        return np.zeros(self.output_shape)
 
     def remember(self, state, action, reward, new_state, done):
         self.memory.store_transition(state, action, reward, new_state, done)
