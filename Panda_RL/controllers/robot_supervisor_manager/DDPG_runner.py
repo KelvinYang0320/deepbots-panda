@@ -54,7 +54,7 @@ def run():
         fp.write(str(env.episodeScore)+'\n')
         fp.close()
         episodeCount += 1  # Increment episode counter
-        
+        break
     if not solved:
         print("Reached episode limit and task was not solved, deploying agent for testing...")
     else:

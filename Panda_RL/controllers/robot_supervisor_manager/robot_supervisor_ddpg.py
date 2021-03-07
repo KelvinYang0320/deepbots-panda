@@ -24,13 +24,15 @@ class PandaRobotSupervisor(RobotSupervisor):
         Num	  Action
         0	  
         ...
-        3^7-1 
+        6
     Reward:
-        Reward is -L2 norm for every step taken, including the termination step
+        Reward is -L2 norm for every step taken
     Starting State:
-        ...
+        [Target x, Target y, Target z, 0, 0, 0, -0.0698, 0, 0, 0]
     Episode Termination:
-        ...
+        distance between "endEffector" and "TARGET" < 0.005 or reached step limit
+        Episode length is greater than 50000
+        Solved Requirements (average episode score in last 100 episodes > -100.0)
     """
 
     def __init__(self):
@@ -72,16 +74,15 @@ class PandaRobotSupervisor(RobotSupervisor):
         self.cnt_handshaking = 0
     def get_observations(self):
         """
-        This get_observation implementation builds the required observation for the CartPole problem.
-        All values apart are gathered here from the robot and poleEndpoint objects.
+        This get_observation implementation builds the required observation for the Panda problem.
+        All values apart are gathered here from the robot and TARGET objects.
         All values are normalized appropriately to [-1, 1], according to their original ranges.
 
-        :return: Observation: [cartPosition, cartVelocity, poleAngle, poleTipVelocity]
+        :return: Observation: [Target x, Target y, Target z, Value of Position Sensor on A1, ..., Value of Position Sensor on A7]
         :rtype: list
         """
         # process of negotiation
         prec = 0.0001
-        # print("err:",np.absolute(np.array(self.motorPositionArr)-np.array(self.motorPositionArr_target)))
         err = np.absolute(np.array(self.motorPositionArr)-np.array(self.motorPositionArr_target)) < prec
         if not np.all(err) and self.cnt_handshaking<20:
             self.cnt_handshaking = self.cnt_handshaking + 1
@@ -97,12 +98,12 @@ class PandaRobotSupervisor(RobotSupervisor):
 
     def get_reward(self, action):
         """
-        Reward is +1 for each step taken, including the termination step.
+        Reward is -L2 norm with some bonus for every step taken
 
         :param action: Not used, defaults to None
         :type action: None, optional
-        :return: Always 1
-        :rtype: int
+        :return: -L2 norm + bonus
+        :rtype: float
         """
         targetPosition = self.target.getPosition()
         targetPosition = ToArmCoord.convert(targetPosition)
@@ -110,6 +111,8 @@ class PandaRobotSupervisor(RobotSupervisor):
         endEffectorPosition = ToArmCoord.convert(endEffectorPosition)
         self.distance = np.linalg.norm([targetPosition[0]-endEffectorPosition[0],targetPosition[1]-endEffectorPosition[1],targetPosition[2]-endEffectorPosition[2]])
         reward = -self.distance
+        
+        # bonus
         if self.distance < 0.01:
             reward = reward + 1.5
         elif self.distance < 0.015:
@@ -120,9 +123,7 @@ class PandaRobotSupervisor(RobotSupervisor):
 
     def is_done(self):
         """
-        An episode is done if the score is over 195.0, or if the pole is off balance, or the cart position is on the
-        arena's edges.
-
+        An episode is done if the score is over -100.0.
         :return: True if termination conditions are met, False otherwise
         :rtype: bool
         """
@@ -134,8 +135,8 @@ class PandaRobotSupervisor(RobotSupervisor):
 
     def solved(self):
         """
-        This method checks whether the CartPole task is solved, so training terminates.
-        Solved condition requires that the average episode score of last 100 episodes is over 195.0.
+        This method checks whether the Panda goal reaching task is solved, so training terminates.
+        Solved condition requires that the average episode score of last 100 episodes is over -100.0.
 
         :return: True if task is solved, False otherwise
         :rtype: bool
@@ -153,6 +154,7 @@ class PandaRobotSupervisor(RobotSupervisor):
         :rtype: list
         """
         return [0.0 for _ in range(self.observation_space.shape[0])]
+
     def motorToRange(self, motorPosition, i):
         if(i==0):
             motorPosition = np.clip(motorPosition, -2.8972, 2.8972)
@@ -171,13 +173,12 @@ class PandaRobotSupervisor(RobotSupervisor):
         else:
             pass
         return motorPosition
+
     def apply_action(self, action):
         """
         This method uses the action list provided, which contains the next action to be executed by the robot.
-        It contains an integer denoting the action, either 0 or 1, with 0 being forward and
-        1 being backward movement. The corresponding motorSpeed value is applied to the wheels.
 
-        :param action: The list that contains the action integer
+        :param action: The message the supervisor sent containing the next action.
         :type action: list of int
         """
         # ignore this action and keep moving
@@ -197,11 +198,10 @@ class PandaRobotSupervisor(RobotSupervisor):
             self.motorList[i].setVelocity(self.motorVelocity)
             self.motorList[i].setPosition(motorPosition)
             self.motorPositionArr_target[i]=motorPosition # motorPositionArr_target Update
-        # print(self.motorPositionArr, self.motorPositionArr_target)
 
     def setup_motors(self):
         """
-        This method initializes the four wheels, storing the references inside a list and setting the starting
+        This method initializes the seven motors, storing the references inside a list and setting the starting
         positions and velocities.
         """
         self.motorList = Func.get_All_motors(self)
