@@ -15,20 +15,12 @@
 ## How it works
 
 ### Overview: emitter - receiver scheme
-![image](https://github.com/KelvinYang0320/deepbots-panda/blob/master/img/deepbots_overview.png)
-
-### Observation
-To do better than take random actions at each step, we ant to know what our actions are doing to the environment.
-The environment’s <code>supervisor.step</code> function returns exactly what we need. In fact, step returns four values. These are:
-* <code>observation</code> (object): an environment-specific object representing your observation of the environment.
-* <code>reward</code> (float): amount of reward achieved by the previous action. The scale varies between environments, but the goal is always to increase your total reward.
-* <code>done</code> (boolean): whether it’s time to reset the environment again. Most (but not all) tasks are divided up into well-defined episodes, and done being True indicates the episode has terminated. (For example, perhaps the pole tipped too far, or you lost your last life.)
-* <code>info</code> (dict): diagnostic information useful for debugging.
+![image](https://github.com/KelvinYang0320/deepbots-panda/blob/Panda-deepbots-0.1.2/img/deepbots_overview.png)
 
 ### Action
 Decide on what action should be taken by <code>agent.work()</code> for the positions of 7 motors.
 
 ## Current Achievements and work
 ### Achievements: Reach a Target via PPOAgent
-![image](https://github.com/KelvinYang0320/deepbots-panda/blob/master/img/demo.gif)
-![image](https://github.com/KelvinYang0320/deepbots-panda/blob/master/img/trend.png)
+![image](https://github.com/KelvinYang0320/deepbots-panda/blob/Panda-deepbots-0.1.2/img/demo.gif)
+![image](https://github.com/KelvinYang0320/deepbots-panda/blob/Panda-deepbots-0.1.2/img/trend.png)
