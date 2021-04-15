@@ -23,7 +23,7 @@ Here, the problem is solved with the [Deep Deterministic Policy Gradient RL algo
 ## Acknowledgments
 This project is part of the System Integration Implementation teamwork, an undergraduate course supervised by [Prof. Chih-Tsun Huang](http://www.cs.nthu.edu.tw/~cthuang) of [Dept. of Computer Science, National Tsing Hua University](http://dcs.site.nthu.edu.tw/).\
 \
-We thank [Manos Kirtas](http://eakirtas.webpages.auth.gr/) and [Kostas Tsampazis](https://github.com/tsampazk), deepbots maintainers, for their help and feedback.
+We thank [Manos Kirtas](http://eakirtas.webpages.auth.gr/) and [Kostas Tsampazis](https://github.com/tsampazk), deepbots maintainers, for their help and feedback.\
 \
 The Panda robot model was contributed by all the team members, [Yung Tai Shih](https://github.com/garystone1), [Tsu Hsiang Chen](https://github.com/Truman-Sean), [Chun Kai Yang](https://github.com/yckai2679), [Yan Feng Su](https://github.com/YenFengSu), [Hsuan Yu Liao](https://github.com/GuluLingpo), and the author of this deepworlds Panda example, [Jiun Kai Yang](https://github.com/KelvinYang0320).
 \
