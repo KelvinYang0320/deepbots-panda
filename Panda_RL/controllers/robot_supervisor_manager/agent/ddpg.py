@@ -67,22 +67,19 @@ class CriticNetwork(nn.Module):
         self.fc1_dims = fc1_dims
         self.fc2_dims = fc2_dims
         self.n_actions = n_actions
+        self.name = name
         self.checkpoint_file = os.path.join(chkpt_dir,name+'_ddpg')
         self.fc1 = nn.Linear(*self.input_dims, self.fc1_dims)
         f1 = 1./np.sqrt(self.fc1.weight.data.size()[0])
         T.nn.init.uniform_(self.fc1.weight.data, -f1, f1)
         T.nn.init.uniform_(self.fc1.bias.data, -f1, f1)
-        #self.fc1.weight.data.uniform_(-f1, f1)
-        #self.fc1.bias.data.uniform_(-f1, f1)
         self.bn1 = nn.LayerNorm(self.fc1_dims)
 
         self.fc2 = nn.Linear(self.fc1_dims, self.fc2_dims)
         f2 = 1./np.sqrt(self.fc2.weight.data.size()[0])
-        #f2 = 0.002
+        
         T.nn.init.uniform_(self.fc2.weight.data, -f2, f2)
         T.nn.init.uniform_(self.fc2.bias.data, -f2, f2)
-        #self.fc2.weight.data.uniform_(-f2, f2)
-        #self.fc2.bias.data.uniform_(-f2, f2)
         self.bn2 = nn.LayerNorm(self.fc2_dims)
 
         self.action_value = nn.Linear(self.n_actions, self.fc2_dims)
@@ -90,8 +87,6 @@ class CriticNetwork(nn.Module):
         self.q = nn.Linear(self.fc2_dims, 1)
         T.nn.init.uniform_(self.q.weight.data, -f3, f3)
         T.nn.init.uniform_(self.q.bias.data, -f3, f3)
-        #self.q.weight.data.uniform_(-f3, f3)
-        #self.q.bias.data.uniform_(-f3, f3)
 
         self.optimizer = optim.Adam(self.parameters(), lr=beta)
         self.device = T.device('cuda:0' if T.cuda.is_available() else 'cuda:1')
@@ -115,9 +110,9 @@ class CriticNetwork(nn.Module):
         print('... saving checkpoint ...')
         T.save(self.state_dict(), self.checkpoint_file)
 
-    def load_checkpoint(self):
+    def load_checkpoint(self, load_path):
         print('... loading checkpoint ...')
-        self.load_state_dict(T.load(self.checkpoint_file))
+        self.load_state_dict(T.load(os.path.join(load_path,self.name+'_ddpg')))
 
 class ActorNetwork(nn.Module):
     def __init__(self, alpha, input_dims, fc1_dims, fc2_dims, n_actions, name,
@@ -127,31 +122,24 @@ class ActorNetwork(nn.Module):
         self.fc1_dims = fc1_dims
         self.fc2_dims = fc2_dims
         self.n_actions = n_actions
+        self.name = name
         self.checkpoint_file = os.path.join(chkpt_dir,name+'_ddpg')
         self.fc1 = nn.Linear(*self.input_dims, self.fc1_dims)
         f1 = 1./np.sqrt(self.fc1.weight.data.size()[0])
         T.nn.init.uniform_(self.fc1.weight.data, -f1, f1)
         T.nn.init.uniform_(self.fc1.bias.data, -f1, f1)
-        #self.fc1.weight.data.uniform_(-f1, f1)
-        #self.fc1.bias.data.uniform_(-f1, f1)
         self.bn1 = nn.LayerNorm(self.fc1_dims)
 
         self.fc2 = nn.Linear(self.fc1_dims, self.fc2_dims)
-        #f2 = 0.002
         f2 = 1./np.sqrt(self.fc2.weight.data.size()[0])
         T.nn.init.uniform_(self.fc2.weight.data, -f2, f2)
         T.nn.init.uniform_(self.fc2.bias.data, -f2, f2)
-        #self.fc2.weight.data.uniform_(-f2, f2)
-        #self.fc2.bias.data.uniform_(-f2, f2)
         self.bn2 = nn.LayerNorm(self.fc2_dims)
 
-        #f3 = 0.004
         f3 = 0.003
         self.mu = nn.Linear(self.fc2_dims, self.n_actions)
         T.nn.init.uniform_(self.mu.weight.data, -f3, f3)
         T.nn.init.uniform_(self.mu.bias.data, -f3, f3)
-        #self.mu.weight.data.uniform_(-f3, f3)
-        #self.mu.bias.data.uniform_(-f3, f3)
 
         self.optimizer = optim.Adam(self.parameters(), lr=alpha)
         self.device = T.device('cuda:0' if T.cuda.is_available() else 'cuda:1')
@@ -173,14 +161,14 @@ class ActorNetwork(nn.Module):
         print('... saving checkpoint ...')
         T.save(self.state_dict(), self.checkpoint_file)
 
-    def load_checkpoint(self):
+    def load_checkpoint(self, load_path):
         print('... loading checkpoint ...')
-        self.load_state_dict(T.load(self.checkpoint_file))
+        self.load_state_dict(T.load(os.path.join(load_path,self.name+'_ddpg')))
 
 class DDPGAgent(object):
     def __init__(self, alpha, beta, input_dims, tau, gamma=0.99,
                  n_actions=2, max_size=1000000, layer1_size=400,
-                 layer2_size=300, batch_size=64):
+                 layer2_size=300, batch_size=64, load_path="./tmp/ddpg/"):
         self.gamma = gamma
         self.tau = tau
         self.memory = ReplayBuffer(max_size, input_dims, n_actions)
@@ -203,6 +191,15 @@ class DDPGAgent(object):
         self.noise = OUActionNoise(mu=np.zeros(n_actions))
 
         self.update_network_parameters(tau=1)
+
+        if load_path!="":
+            print("Try to load the pretrained models...")
+            try:
+                self.load_models(load_path)
+            except OSError:
+                print ("No pretrained models!")
+            else:
+                print ("Successfully loaded the pretrained models!")
 
     def choose_action(self, observation):
         self.actor.eval()
@@ -312,11 +309,11 @@ class DDPGAgent(object):
         self.critic.save_checkpoint()
         self.target_critic.save_checkpoint()
 
-    def load_models(self):
-        self.actor.load_checkpoint()
-        self.target_actor.load_checkpoint()
-        self.critic.load_checkpoint()
-        self.target_critic.load_checkpoint()
+    def load_models(self, load_path):
+        self.actor.load_checkpoint(load_path)
+        self.target_actor.load_checkpoint(load_path)
+        self.critic.load_checkpoint(load_path)
+        self.target_critic.load_checkpoint(load_path)
 
     def check_actor_params(self):
         current_actor_params = self.actor.named_parameters()

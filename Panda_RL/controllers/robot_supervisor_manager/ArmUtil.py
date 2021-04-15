@@ -22,6 +22,9 @@ class Func:
 	
 	@staticmethod
 	def get_All_motors(robot):
+		"""
+		Get 7 motors from the robot model
+		"""
 		motorList = []
 		for i in range(7):
 			motorName = 'motor' + str(i + 1)
