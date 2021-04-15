@@ -22,5 +22,6 @@ Decide on what action should be taken by <code>agent.work()</code> for the posit
 
 ## Current Achievements and work
 ### Achievements: Reach a Target via PPOAgent
-![image](https://github.com/KelvinYang0320/deepbots-panda/blob/Panda-deepbots-0.1.2/img/demo.gif)
-![image](https://github.com/KelvinYang0320/deepbots-panda/blob/Panda-deepbots-0.1.2/img/trend.png)
+|Trained Agent Showcase|Reward Per Episode Plot|
+|---|---|
+|![image](https://github.com/KelvinYang0320/deepbots-panda/blob/Panda-deepbots-0.1.2/img/demo.gif)|![image](https://github.com/KelvinYang0320/deepbots-panda/blob/Panda-deepbots-0.1.2/img/trend.png)|
