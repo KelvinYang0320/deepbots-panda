@@ -8,8 +8,8 @@ def Plot(text_path="./exports/", dest_path="./exports/"):
     lines = fp.read().splitlines()
     scores = list(map(float, lines))
     episode = list(range(1, 1+len(scores)))
-    scores = scores[0:150]
-    episode = episode[0:150]
+    scores = scores[0:5000]
+    episode = episode[0:5000]
     plt.figure()
     plt.title("Episode scores over episode")
     plt.plot(episode, scores, label='Raw data')
@@ -27,8 +27,8 @@ def Plot2(text_path="./exports/", dest_path="./exports/"):
     lines = fp.read().splitlines()
     scores = list(map(float, lines))
     episode = list(range(1, 1+len(scores)))
-    scores = scores[0:300*150]
-    episode = episode[0:300*150]
+    scores = scores[0:300*5000]
+    episode = episode[0:300*5000]
     plt.figure()
     plt.title("Step punishment over episode")
     plt.plot(episode, scores, label='Raw data')

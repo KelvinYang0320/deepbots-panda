@@ -111,15 +111,17 @@ class PandaRobotSupervisor(RobotSupervisor):
 
         endEffectorPosition = self.endEffector.getPosition()
         
-        endEffectorPositionOrientation = self.endEffector.getOrientation()
+        endEffectorOrientation = self.endEffector.getOrientation()
         endEffectorPosition = ToArmCoord.convert(endEffectorPosition)
 
         self.distance = np.linalg.norm([targetPosition[0]-endEffectorPosition[0],targetPosition[1]-endEffectorPosition[1],targetPosition[2]-endEffectorPosition[2]])
         reward = -self.distance # - 2-norm
-        reward = reward - 0.01*abs(targetPosition[1]-endEffectorPosition[1])
-        fp = open("./exports/Episode-score2.txt","a")
-        fp.write(str(0.01*abs(targetPosition[1]-endEffectorPosition[1]))+'\n')
-        fp.close()
+        s = 0.1
+        reward = reward - s*abs(endEffectorOrientation[3]-1)
+        if self.cnt_handshaking == 0:
+            fp = open("./exports/Episode-score2.txt","a")
+            fp.write(str(abs(endEffectorOrientation[3]-1))+'\n')
+            fp.close()
         # Extra points
         if self.distance < 0.01:
             reward = reward + 1.5
