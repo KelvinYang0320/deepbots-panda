@@ -201,6 +201,16 @@ class PandaRobotSupervisor(RobotSupervisor):
                 self.motorList[i].setVelocity(MOTOR_VELOCITY)
                 self.motorList[i].setPosition(self.motorPositionArr_target[i])
             return
+        elif len(action)==9:
+            for i in range(7):
+                self.motorPositionArr[i] = self.positionSensorList[i].getValue()
+                
+                self.motorList[i].setVelocity(MOTOR_VELOCITY)
+                act = self.motorToRange(action[i+1], i)
+                self.motorList[i].setPosition(act)
+                self.motorPositionArr_target[i]=act
+            print(self.motorPositionArr)
+            return
         
         self.motorPositionArr = np.array(Func.getValue(self.positionSensorList))
         for i in range(7):
