@@ -118,28 +118,28 @@ def run(load_path):
 
         
 
-    # if not solved:
-    #     print("Reached episode limit and task was not solved, deploying agent for testing...")
-    # else:
-    #     print("Task is solved, deploying agent for testing...")
+    if not solved:
+        print("Reached episode limit and task was not solved, deploying agent for testing...")
+    else:
+        print("Task is solved, deploying agent for testing...")
 
-    # state = env.reset()
-    # env.episodeScore = 0
-    # step = 0
-    # env.target = env.getFromDef("TARGET%s"%(random.randint(1, 10, 1)[0])) # Select one of the targets
-    # while True:
-    #     act = agent.choose_action_test(state)
-    #     state, reward, done, _ = env.step(act*0.032)
-    #     # process of negotiation
-    #     while(state==["StillMoving"]):
-    #         state, reward, done, info = env.step([-1])
+    state = env.reset()
+    env.episodeScore = 0
+    step = 0
+    env.target = env.getFromDef("TARGET%s"%(random.randint(1, 10, 1)[0])) # Select one of the targets
+    while True:
+        act = agent.choose_action_test(state)
+        state, reward, done, _ = env.step(act*0.032)
+        # process of negotiation
+        while(state==["StillMoving"]):
+            state, reward, done, info = env.step([-1])
         
-    #     env.episodeScore += reward  # Accumulate episode reward
-    #     step = step + 1
-    #     if done or step==STEPS_PER_EPISODE-1:
-    #         print("Reward accumulated =", env.episodeScore)
-    #         env.episodeScore = 0
-    #         state = env.reset()
-    #         step = 0
-    #         env.target = env.getFromDef("TARGET%s"%(random.randint(1, 10, 1)[0]))
+        env.episodeScore += reward  # Accumulate episode reward
+        step = step + 1
+        if done or step==STEPS_PER_EPISODE-1:
+            print("Reward accumulated =", env.episodeScore)
+            env.episodeScore = 0
+            state = env.reset()
+            step = 0
+            env.target = env.getFromDef("TARGET%s"%(random.randint(1, 10, 1)[0]))
         
